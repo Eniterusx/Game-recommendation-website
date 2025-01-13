@@ -1,0 +1,204 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Game Recommendator</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            -webkit-box-sizing: inherit;
+            box-sizing: inherit;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            margin: 0;
+        }
+        body {
+            text-align: center;
+            background: linear-gradient(345deg, #3f3d3e, #aaa7a7);
+            
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            background-position: center;
+            background-attachment: fixed;
+
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+
+            color: white;
+        }
+        .content {
+            /* border: 1px solid black; */
+            background: #1d1624ec;
+            border: 8px solid #2a222c;
+            border-radius: 10px;
+            min-height: 90%;
+            width: 60%;
+            margin: 10px auto 10px auto;
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            font-size: 2.5em;
+            text-decoration: underline;
+            margin: 20px auto 0 auto;
+        }
+        h3 {
+            font-size: 1.8em;
+            margin: 10px auto 2px auto;
+        }
+        img {
+            margin: 20px auto 0 auto;
+            max-width: 80%;
+            width: 1000px;
+            background: rgba(0, 0, 0, 0.219);
+            border-radius: 20px;
+            padding-bottom: 6px;
+        }
+        div {
+            margin-top: 20px;
+            width: 600px;
+            margin: 0 auto;
+            max-width: 85%;
+        }
+        form {
+            max-width: 85%;
+            width: 600px;
+            margin: 20px auto 5px auto;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            justify-content: end;
+        }
+        form * {
+            margin: 2px 0;
+        }
+        form div {
+            max-width: 97%;
+            width: 600px;
+            display: flex;
+        }
+        input {
+            flex: 1;
+            margin: auto;
+            margin-left: 0;
+            margin-right: 5px;
+            min-width: 70%;
+            height: 30px;
+            line-height: 10px;
+            border: 0px;
+            padding: 0px 5px;
+            border: none;
+        }
+        button {
+            flex: 1;
+            margin: 5px auto;
+            width: 100%;
+            height: 30px;
+            background-color: #4e8ce7;
+            color: black;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        li {
+            list-style-type: none;
+        }
+        ul {
+            padding-left: 0;
+        }
+        .bold {
+            font-weight: bold;
+        }
+        .instructions {
+            margin-top: 20px;
+            width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        .instructions h3 {
+            text-align: center;
+        }
+        a {
+            color: #7aafff;
+            text-decoration: none;
+        }
+        .results {
+            padding-top: 30px;
+            padding-bottom: 20px;
+        }
+        .results h2 {
+            font-size: 2.4em;
+            line-height: 0.96em;
+            text-decoration: underline;
+            margin-bottom: 10px;
+        }
+        @media (max-width: 800px){
+            .content {
+                width: 95%;
+            }
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="content">
+        <!-- <img src="{% static 'logo.gif' %}" alt="Steam logo"> -->
+        <h1>Steam Game Recommendator</h1>
+
+        <div class="instructions">
+            <h3>How to use:</h3>
+            <p>Enter your Steam profile link in the input field below and press submit. The app will show you your most played games and recommend you some new games based on your preferences.</p>
+            <p class="bold">Remember to set your profile visibility and games' playtimes to public.</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <label for="steam_id">Enter Steam profile link:</label>
+            <div>
+                <input type="text" id="steam_id" name="steam_id" placeholder="https://steamcommunity.com/id/your_id" required>
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+        <div class="results">
+            {% if steam_data %}
+                {% if steam_id %}
+                    <h2>Steam data for user {{ nickname|safe }}</h2>
+                {% else %}
+                    <h2>User not found!</h2>
+                {% endif %}
+                <!-- check if steam_Data is empty -->
+                {% if steam_data.response %}
+                    <p>No data found for user {{ steam_id|safe }}</p>
+                {% endif %}
+                <!-- handle errors -->
+                {% if steam_data.error %}
+                    <p>{{ steam_data.error|safe }}</p>
+                <!-- return data -->
+                {% else %}
+                    <h3>Most played games:</h3>
+                    <ul>
+                        {% for game in steam_data.most_played_games.values %}
+                            <li>{{ game.name }} - {{ game.playtime }} h</li>
+                        {% endfor %}
+                    </ul>
+                    <h3>Recommended games:</h3>
+                    <ul>
+                        {% for game in steam_data.recommendations.values %}
+                            <li><a href="https://store.steampowered.com/app/{{game.steam_id}}" target="_blank">{{ game.name|safe }}</a></li>
+                        {% endfor %}
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html>
